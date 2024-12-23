@@ -184,11 +184,11 @@ impl<'a> Scanner<'a> {
                     self.add_token(TokenType::Slash)
                 }
             }
-            '0'..='9' => self.number(),
-            'a'..='z' | 'A'..='Z' | '_' => self.identifier(),
             '"' => self.string(),
             ' ' | '\t' | '\r' => {}
             '\n' => self.line += 1,
+            c if Self::is_digit(c) => self.number(),
+            c if c.is_ascii_alphabetic() || c == '_' => self.identifier(),
             _ => {
                 let message = format!("encountered unexpected character: {}", c);
                 self.reporter.error(self.line, &message)
