@@ -5,9 +5,21 @@ use std::fs;
 use std::io;
 use std::io::Write;
 
-struct Lux;
+#[derive(Default)]
+struct Lux {
+    had_error: bool,
+}
 
 impl Lux {
+    fn error(&mut self, line: usize, message: &str) {
+        self.report(line, "", message);
+    }
+
+    fn report(&mut self, line: usize, error_where: &str, message: &str) {
+        println!("[line {}] Error {}: {}", line, error_where, message);
+        self.had_error = true;
+    }
+
     fn run_file(file_path: &str) -> Result<(), std::io::Error> {
         let program = fs::read_to_string(file_path)?;
         Self::run(&program);
