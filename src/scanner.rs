@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::token::{Token, TokenType};
 
 pub struct Scanner<'a> {
@@ -46,6 +44,53 @@ impl<'a> Scanner<'a> {
         } else {
             return self.source.as_bytes()[self.current] as char;
         }
+    }
+
+    fn peek_next(&self) -> char {
+        if self.current + 1 >= self.source.len() {
+            return '\0';
+        } else {
+            return self.source.as_bytes()[self.current + 1] as char;
+        }
+    }
+
+    fn string(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+        if self.is_at_end() {
+            // TODO: proper error handling
+            println!("string not closed");
+        }
+        self.advance();
+        let string_literal = &self.source[self.start + 1..self.current - 1];
+        self.add_token(TokenType::String(string_literal))
+    }
+
+    fn is_digit(c: char) -> bool {
+        match c {
+            '0'..='9' => true,
+            _ => false,
+        }
+    }
+
+    fn number(&mut self) {
+        while Self::is_digit(self.peek()) && !self.is_at_end() {
+            self.advance();
+        }
+        if self.peek() == '.' && Self::is_digit(self.peek_next()) {
+            self.advance();
+            while Self::is_digit(self.peek()) && !self.is_at_end() {
+                self.advance();
+            }
+        }
+        let digits = &self.source[self.start..self.current];
+        self.add_token(TokenType::Number(
+            digits.parse::<f64>().expect("failed to parse float"),
+        ))
     }
 
     fn add_token(&mut self, token_type: TokenType<'a>) {
@@ -107,6 +152,8 @@ impl<'a> Scanner<'a> {
                     self.add_token(TokenType::Slash)
                 }
             }
+            '0'..='9' => self.number(),
+            '"' => self.string(),
             ' ' | '\t' | '\r' => {}
             '\n' => self.line += 1,
             _ => {}
