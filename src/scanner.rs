@@ -77,6 +77,10 @@ impl<'a> Scanner<'a> {
         }
     }
 
+    fn is_alphanumeric(c: char) -> bool {
+        c.is_ascii_digit() || c.is_ascii_alphabetic() || c == '_'
+    }
+
     fn number(&mut self) {
         while Self::is_digit(self.peek()) && !self.is_at_end() {
             self.advance();
@@ -91,6 +95,32 @@ impl<'a> Scanner<'a> {
         self.add_token(TokenType::Number(
             digits.parse::<f64>().expect("failed to parse float"),
         ))
+    }
+
+    fn identifier(&mut self) {
+        while Self::is_alphanumeric(self.peek()) {
+            self.advance();
+        }
+        let token_type = match &self.source[self.start..self.current] {
+            "and" => TokenType::And,
+            "class" => TokenType::Class,
+            "else" => TokenType::Else,
+            "false" => TokenType::False,
+            "for" => TokenType::For,
+            "fun" => TokenType::Fun,
+            "if" => TokenType::If,
+            "nil" => TokenType::Nil,
+            "or" => TokenType::Or,
+            "print" => TokenType::Print,
+            "return" => TokenType::Return,
+            "super" => TokenType::Super,
+            "this" => TokenType::This,
+            "true" => TokenType::True,
+            "var" => TokenType::Var,
+            "while" => TokenType::While,
+            _ => TokenType::Identifier,
+        };
+        self.add_token(token_type)
     }
 
     fn add_token(&mut self, token_type: TokenType<'a>) {
@@ -153,6 +183,7 @@ impl<'a> Scanner<'a> {
                 }
             }
             '0'..='9' => self.number(),
+            'a'..='z' | 'A'..='Z' | '_' => self.identifier(),
             '"' => self.string(),
             ' ' | '\t' | '\r' => {}
             '\n' => self.line += 1,
