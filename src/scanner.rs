@@ -22,10 +22,20 @@ impl<'a> Scanner<'a> {
     fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     }
+
     fn advance(&mut self) -> char {
         let c = self.source.as_bytes()[self.current] as char;
         self.current += 1;
         c
+    }
+
+    fn match_char(&mut self, c: char) -> bool {
+        if self.is_at_end() || self.source.as_bytes()[self.current] as char != c {
+            return false;
+        } else {
+            self.current += 1;
+            return true;
+        }
     }
 
     fn add_token(&mut self, token_type: TokenType<'a>) {
@@ -50,6 +60,34 @@ impl<'a> Scanner<'a> {
             '+' => self.add_token(TokenType::Plus),
             ';' => self.add_token(TokenType::Semicolon),
             '*' => self.add_token(TokenType::Star),
+            '!' => {
+                if self.match_char('=') {
+                    self.add_token(TokenType::BangEqual)
+                } else {
+                    self.add_token(TokenType::Bang)
+                }
+            }
+            '=' => {
+                if self.match_char('=') {
+                    self.add_token(TokenType::EqualEqual)
+                } else {
+                    self.add_token(TokenType::Equal)
+                }
+            }
+            '<' => {
+                if self.match_char('=') {
+                    self.add_token(TokenType::LessEqual)
+                } else {
+                    self.add_token(TokenType::Less)
+                }
+            }
+            '>' => {
+                if self.match_char('=') {
+                    self.add_token(TokenType::GreaterEqual)
+                } else {
+                    self.add_token(TokenType::Greater)
+                }
+            }
             _ => {}
         };
     }
