@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::token::{Token, TokenType};
 
 pub struct Scanner<'a> {
@@ -35,6 +37,14 @@ impl<'a> Scanner<'a> {
         } else {
             self.current += 1;
             return true;
+        }
+    }
+
+    fn peek(&self) -> char {
+        if self.is_at_end() {
+            return '\0';
+        } else {
+            return self.source.as_bytes()[self.current] as char;
         }
     }
 
@@ -88,6 +98,17 @@ impl<'a> Scanner<'a> {
                     self.add_token(TokenType::Greater)
                 }
             }
+            '/' => {
+                if self.match_char('/') {
+                    while self.peek() != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                } else {
+                    self.add_token(TokenType::Slash)
+                }
+            }
+            ' ' | '\t' | '\r' => {}
+            '\n' => self.line += 1,
             _ => {}
         };
     }
