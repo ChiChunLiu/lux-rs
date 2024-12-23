@@ -49,7 +49,7 @@ pub enum TokenType<'a> {
     Var,
     While,
 
-    Eof,
+    EOF,
 }
 
 impl<'a> fmt::Display for TokenType<'a> {

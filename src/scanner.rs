@@ -60,7 +60,7 @@ impl<'a> Scanner<'a> {
             self.scan_token();
         }
         self.tokens.push(Token {
-            token_type: TokenType::Eof,
+            token_type: TokenType::EOF,
             lexeme: "",
             line: self.line,
         });
