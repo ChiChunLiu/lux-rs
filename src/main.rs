@@ -1,3 +1,4 @@
+mod scanner;
 mod token;
 use std::env;
 use std::fs;
@@ -9,15 +10,25 @@ struct Lux;
 impl Lux {
     fn run_file(file_path: &str) -> Result<(), std::io::Error> {
         let program = fs::read_to_string(file_path)?;
-        println!("{program}");
+        Self::run(&program);
         Ok(())
     }
+
     fn run_prompt() -> Result<(), std::io::Error> {
         loop {
             print!("> ");
             io::stdout().flush()?;
             let mut buf = String::new();
             let _bytes = io::stdin().read_line(&mut buf)?;
+            Self::run(&buf);
+        }
+    }
+
+    fn run(source: &str) {
+        let mut scanner = scanner::Scanner::new(source);
+        let tokens = scanner.scan_tokens();
+        for token in tokens {
+            println!("{:?}", token.to_string())
         }
     }
 }
