@@ -1,3 +1,4 @@
+use crate::reporter::Reporter;
 use crate::token::{Token, TokenType};
 
 pub struct Scanner<'a> {
@@ -6,16 +7,18 @@ pub struct Scanner<'a> {
     pub start: usize,
     pub current: usize,
     pub line: usize,
+    pub reporter: &'a mut dyn Reporter,
 }
 
 impl<'a> Scanner<'a> {
-    pub fn new(source: &'a str) -> Self {
+    pub fn new(source: &'a str, reporter: &'a mut dyn Reporter) -> Self {
         Scanner {
             source,
             tokens: vec![],
             start: 0,
             current: 0,
             line: 0,
+            reporter,
         }
     }
 
@@ -62,8 +65,7 @@ impl<'a> Scanner<'a> {
             self.advance();
         }
         if self.is_at_end() {
-            // TODO: proper error handling
-            println!("string not closed");
+            self.reporter.error(self.line, "string not closed");
         }
         self.advance();
         let string_literal = &self.source[self.start + 1..self.current - 1];
@@ -187,7 +189,10 @@ impl<'a> Scanner<'a> {
             '"' => self.string(),
             ' ' | '\t' | '\r' => {}
             '\n' => self.line += 1,
-            _ => {}
+            _ => {
+                let message = format!("encountered unexpected character: {}", c);
+                self.reporter.error(self.line, &message)
+            }
         };
     }
 
