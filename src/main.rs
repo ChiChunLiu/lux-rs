@@ -1,3 +1,4 @@
+mod expressions;
 mod reporter;
 mod scanner;
 mod token;
