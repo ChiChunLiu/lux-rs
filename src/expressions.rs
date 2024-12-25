@@ -2,7 +2,7 @@ use crate::token::Token;
 use paste;
 
 trait Accept<R> {
-    fn accept(&self, visitor: &dyn ExprVisitor<R>) -> R;
+    fn accept(&self, visitor: &impl ExprVisitor<R>) -> R;
 }
 
 trait ExprVisitor<R> {
@@ -23,7 +23,7 @@ macro_rules! ast_node {
 
         paste::paste! {
         impl<'a, R> Accept<R> for $node_name<'a> {
-           fn accept(&self, visitor: &dyn ExprVisitor<R>) -> R {
+           fn accept(&self, visitor: &impl ExprVisitor<R>) -> R {
                visitor.[<visit_ $node_name:snake>](self)
            }
         }
@@ -49,7 +49,7 @@ enum Expr<'a> {
 }
 
 impl<'a, R> Accept<R> for Expr<'a> {
-    fn accept(&self, visitor: &dyn ExprVisitor<R>) -> R {
+    fn accept(&self, visitor: &impl ExprVisitor<R>) -> R {
         match self {
             Self::Binary(expr) => expr.accept(visitor),
             Self::Unary(expr) => expr.accept(visitor),
