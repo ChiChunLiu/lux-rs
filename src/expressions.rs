@@ -15,9 +15,9 @@ trait ExprVisitor<R> {
 #[macro_export]
 macro_rules! ast_node {
     ( $node_name:ident,  $(($field_name:ident, $field_type:ident)),* ) => {
-        struct $node_name<'a> {
+        pub struct $node_name<'a> {
             $(
-                $field_name: $field_type<'a>,
+                pub $field_name: $field_type<'a>,
             )*
         }
 
@@ -43,7 +43,7 @@ ast_node!(UnaryExpr, (operator, Token), (right, Expr));
 ast_node!(LiteralExpr, (value, LiteralValue));
 ast_node!(GroupingExpr, (expr, Expr));
 
-enum Expr<'a> {
+pub enum Expr<'a> {
     Binary(&'a BinaryExpr<'a>),
     Unary(&'a UnaryExpr<'a>),
     Literal(&'a LiteralExpr<'a>),
