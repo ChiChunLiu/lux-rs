@@ -1,5 +1,8 @@
-pub trait Reporter {
-    fn error(&mut self, line: usize, message: &str);
+use crate::token::{Token, TokenType};
+
+pub trait Reporter<'a> {
+    fn scanner_error(&mut self, line: usize, message: &str);
+    fn parser_error(&mut self, token: &Token<'a>, message: &str);
     fn report(&mut self, line: usize, error_where: &str, message: &str);
 }
 
@@ -8,11 +11,16 @@ pub struct StdoutReporter {
     had_error: bool,
 }
 
-impl Reporter for StdoutReporter {
-    fn error(&mut self, line: usize, message: &str) {
+impl<'a> Reporter<'a> for StdoutReporter {
+    fn scanner_error(&mut self, line: usize, message: &str) {
         self.report(line, "", message);
     }
-
+    fn parser_error(&mut self, token: &Token<'a>, message: &str) {
+        match token.token_type {
+            TokenType::EOF => self.report(token.line, " at end", message),
+            _ => self.report(token.line, &format!("at '{}'", token.lexeme), message),
+        }
+    }
     fn report(&mut self, line: usize, error_where: &str, message: &str) {
         println!("[line {}] Error {}: {}", line, error_where, message);
         self.had_error = true;

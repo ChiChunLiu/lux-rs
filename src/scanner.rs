@@ -7,11 +7,11 @@ pub struct Scanner<'a> {
     pub start: usize,
     pub current: usize,
     pub line: usize,
-    pub reporter: &'a mut dyn Reporter,
+    pub reporter: &'a mut dyn Reporter<'a>,
 }
 
 impl<'a> Scanner<'a> {
-    pub fn new(source: &'a str, reporter: &'a mut dyn Reporter) -> Self {
+    pub fn new(source: &'a str, reporter: &'a mut dyn Reporter<'a>) -> Self {
         Scanner {
             source,
             tokens: vec![],
@@ -65,7 +65,7 @@ impl<'a> Scanner<'a> {
             self.advance();
         }
         if self.is_at_end() {
-            self.reporter.error(self.line, "string not closed");
+            self.reporter.scanner_error(self.line, "string not closed");
         }
         self.advance();
         let string_literal = &self.source[self.start + 1..self.current - 1];
@@ -191,7 +191,7 @@ impl<'a> Scanner<'a> {
             c if c.is_ascii_alphabetic() || c == '_' => self.identifier(),
             _ => {
                 let message = format!("encountered unexpected character: {}", c);
-                self.reporter.error(self.line, &message)
+                self.reporter.scanner_error(self.line, &message)
             }
         };
     }
