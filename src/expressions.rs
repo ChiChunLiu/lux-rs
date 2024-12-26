@@ -14,10 +14,10 @@ trait ExprVisitor<R> {
 
 #[macro_export]
 macro_rules! ast_node {
-    ( $node_name:ident,  $(($field_name:ident, $field_type:ty)),* ) => {
+    ( $node_name:ident,  $(($field_name:ident, $field_type:ident)),* ) => {
         pub struct $node_name<'a> {
             $(
-                pub $field_name: $field_type,
+                pub $field_name: $field_type<'a>,
             )*
         }
 
@@ -38,15 +38,10 @@ enum LiteralValue<'a> {
     Nil,
 }
 
-ast_node!(
-    BinaryExpr,
-    (left, Expr<'a>),
-    (operator, &'a Token<'a>),
-    (right, Expr<'a>)
-);
-ast_node!(UnaryExpr, (operator, &'a Token<'a>), (right, Expr<'a>));
-ast_node!(LiteralExpr, (value, LiteralValue<'a>));
-ast_node!(GroupingExpr, (expr, Expr<'a>));
+ast_node!(BinaryExpr, (left, Expr), (operator, Token), (right, Expr));
+ast_node!(UnaryExpr, (operator, Token), (right, Expr));
+ast_node!(LiteralExpr, (value, LiteralValue));
+ast_node!(GroupingExpr, (expr, Expr));
 
 pub enum Expr<'a> {
     Binary(&'a BinaryExpr<'a>),
@@ -109,7 +104,7 @@ mod tests {
     fn test_ast_printer() {
         let expression = Expr::Binary(&BinaryExpr {
             left: Expr::Unary(&UnaryExpr {
-                operator: &Token {
+                operator: Token {
                     token_type: TokenType::Minus,
                     lexeme: "-",
                     line: 1,
@@ -118,7 +113,7 @@ mod tests {
                     value: LiteralValue::Number(123.0),
                 }),
             }),
-            operator: &Token {
+            operator: Token {
                 token_type: TokenType::Star,
                 lexeme: "*",
                 line: 1,
