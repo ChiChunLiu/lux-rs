@@ -34,6 +34,8 @@ macro_rules! ast_node {
 enum LiteralValue<'a> {
     String(&'a str),
     Number(f64),
+    Bool(bool),
+    Nil,
 }
 
 ast_node!(BinaryExpr, (left, Expr), (operator, Token), (right, Expr));
@@ -82,8 +84,10 @@ impl ExprVisitor<String> for AstPrinter {
     }
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> String {
         match expr.value {
-            LiteralValue::Number(n) => format!("{}", n),
-            LiteralValue::String(s) => s.to_owned(),
+            LiteralValue::Number(v) => format!("{}", v),
+            LiteralValue::String(v) => v.to_owned(),
+            LiteralValue::Bool(v) => format!("{}", v),
+            LiteralValue::Nil => String::from("nil"),
         }
     }
     fn visit_grouping_expr(&self, expr: &GroupingExpr) -> String {
