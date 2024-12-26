@@ -31,7 +31,7 @@ macro_rules! ast_node {
     };
 }
 
-enum LiteralValue<'a> {
+pub enum LiteralValue<'a> {
     String(&'a str),
     Number(f64),
     Bool(bool),
@@ -43,11 +43,13 @@ ast_node!(UnaryExpr, (operator, Token), (right, Expr));
 ast_node!(LiteralExpr, (value, LiteralValue));
 ast_node!(GroupingExpr, (expr, Expr));
 
+// Box is necessary because expression created inside a function
+// needs to be owned
 pub enum Expr<'a> {
-    Binary(&'a BinaryExpr<'a>),
-    Unary(&'a UnaryExpr<'a>),
-    Literal(&'a LiteralExpr<'a>),
-    Grouping(&'a GroupingExpr<'a>),
+    Binary(Box<BinaryExpr<'a>>),
+    Unary(Box<UnaryExpr<'a>>),
+    Literal(Box<LiteralExpr<'a>>),
+    Grouping(Box<GroupingExpr<'a>>),
 }
 
 impl<'a, R> Accept<R> for Expr<'a> {
@@ -102,28 +104,28 @@ mod tests {
 
     #[test]
     fn test_ast_printer() {
-        let expression = Expr::Binary(&BinaryExpr {
-            left: Expr::Unary(&UnaryExpr {
+        let expression = Expr::Binary(Box::new(BinaryExpr {
+            left: Expr::Unary(Box::new(UnaryExpr {
                 operator: Token {
                     token_type: TokenType::Minus,
                     lexeme: "-",
                     line: 1,
                 },
-                right: Expr::Literal(&LiteralExpr {
+                right: Expr::Literal(Box::new(LiteralExpr {
                     value: LiteralValue::Number(123.0),
-                }),
-            }),
+                })),
+            })),
             operator: Token {
                 token_type: TokenType::Star,
                 lexeme: "*",
                 line: 1,
             },
-            right: Expr::Grouping(&GroupingExpr {
-                expr: Expr::Literal(&LiteralExpr {
+            right: Expr::Grouping(Box::new(GroupingExpr {
+                expr: Expr::Literal(Box::new(LiteralExpr {
                     value: LiteralValue::String("abc"),
-                }),
-            }),
-        });
+                })),
+            })),
+        }));
         let visitor = AstPrinter {};
         let printed = expression.accept(&visitor);
         assert_eq!(printed, "(* (- 123) (group abc))")
