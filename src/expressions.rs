@@ -15,14 +15,15 @@ trait ExprVisitor<R> {
 #[macro_export]
 macro_rules! ast_node {
     ( $node_name:ident,  $(($field_name:ident, $field_type:ident)),* ) => {
-        pub struct $node_name<'a> {
+        #[derive(Clone)]
+        pub struct $node_name {
             $(
-                pub $field_name: $field_type<'a>,
+                pub $field_name: $field_type,
             )*
         }
 
         paste::paste! {
-        impl<'a, R> Accept<R> for $node_name<'a> {
+        impl<'a, R> Accept<R> for $node_name {
            fn accept(&self, visitor: &impl ExprVisitor<R>) -> R {
                visitor.[<visit_ $node_name:snake>](self)
            }
@@ -31,8 +32,9 @@ macro_rules! ast_node {
     };
 }
 
-pub enum LiteralValue<'a> {
-    String(&'a str),
+#[derive(Clone)]
+pub enum LiteralValue {
+    String(String),
     Number(f64),
     Bool(bool),
     Nil,
@@ -45,14 +47,15 @@ ast_node!(GroupingExpr, (expr, Expr));
 
 // Box is necessary because expression created inside a function
 // needs to be owned
-pub enum Expr<'a> {
-    Binary(Box<BinaryExpr<'a>>),
-    Unary(Box<UnaryExpr<'a>>),
-    Literal(Box<LiteralExpr<'a>>),
-    Grouping(Box<GroupingExpr<'a>>),
+#[derive(Clone)]
+pub enum Expr {
+    Binary(Box<BinaryExpr>),
+    Unary(Box<UnaryExpr>),
+    Literal(Box<LiteralExpr>),
+    Grouping(Box<GroupingExpr>),
 }
 
-impl<'a, R> Accept<R> for Expr<'a> {
+impl<'a, R> Accept<R> for Expr {
     fn accept(&self, visitor: &impl ExprVisitor<R>) -> R {
         match self {
             Self::Binary(expr) => expr.accept(visitor),
@@ -79,13 +82,13 @@ impl AstPrinter {
 }
 impl ExprVisitor<String> for AstPrinter {
     fn visit_unary_expr(&self, expr: &UnaryExpr) -> String {
-        self.parenthesize(expr.operator.lexeme, &[&expr.right])
+        self.parenthesize(&expr.operator.lexeme, &[&expr.right])
     }
     fn visit_binary_expr(&self, expr: &BinaryExpr) -> String {
-        self.parenthesize(expr.operator.lexeme, &[&expr.left, &expr.right])
+        self.parenthesize(&expr.operator.lexeme, &[&expr.left, &expr.right])
     }
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> String {
-        match expr.value {
+        match &expr.value {
             LiteralValue::Number(v) => format!("{}", v),
             LiteralValue::String(v) => v.to_owned(),
             LiteralValue::Bool(v) => format!("{}", v),
@@ -108,7 +111,7 @@ mod tests {
             left: Expr::Unary(Box::new(UnaryExpr {
                 operator: Token {
                     token_type: TokenType::Minus,
-                    lexeme: "-",
+                    lexeme: "-".to_string(),
                     line: 1,
                 },
                 right: Expr::Literal(Box::new(LiteralExpr {
@@ -117,12 +120,12 @@ mod tests {
             })),
             operator: Token {
                 token_type: TokenType::Star,
-                lexeme: "*",
+                lexeme: "*".to_string(),
                 line: 1,
             },
             right: Expr::Grouping(Box::new(GroupingExpr {
                 expr: Expr::Literal(Box::new(LiteralExpr {
-                    value: LiteralValue::String("abc"),
+                    value: LiteralValue::String("abc".to_string()),
                 })),
             })),
         }));

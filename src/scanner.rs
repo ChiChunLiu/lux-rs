@@ -1,17 +1,17 @@
 use crate::reporter::Reporter;
 use crate::token::{Token, TokenType};
 
-pub struct Scanner<'a> {
+pub struct Scanner<'a, R: Reporter> {
     pub source: &'a str,
-    pub tokens: Vec<Token<'a>>,
+    pub tokens: Vec<Token>,
     pub start: usize,
     pub current: usize,
     pub line: usize,
-    pub reporter: &'a mut dyn Reporter<'a>,
+    pub reporter: R,
 }
 
-impl<'a> Scanner<'a> {
-    pub fn new(source: &'a str, reporter: &'a mut dyn Reporter<'a>) -> Self {
+impl<'a, R: Reporter> Scanner<'a, R> {
+    pub fn new(source: &'a str, reporter: R) -> Self {
         Scanner {
             source,
             tokens: vec![],
@@ -68,7 +68,7 @@ impl<'a> Scanner<'a> {
             self.reporter.scanner_error(self.line, "string not closed");
         }
         self.advance();
-        let string_literal = &self.source[self.start + 1..self.current - 1];
+        let string_literal = self.source[self.start + 1..self.current - 1].to_string();
         self.add_token(TokenType::String(string_literal))
     }
 
@@ -125,8 +125,8 @@ impl<'a> Scanner<'a> {
         self.add_token(token_type)
     }
 
-    fn add_token(&mut self, token_type: TokenType<'a>) {
-        let lexeme = &self.source[self.start..self.current];
+    fn add_token(&mut self, token_type: TokenType) {
+        let lexeme = self.source[self.start..self.current].to_string();
         self.tokens.push(Token {
             token_type,
             lexeme,
@@ -203,7 +203,7 @@ impl<'a> Scanner<'a> {
         }
         self.tokens.push(Token {
             token_type: TokenType::EOF,
-            lexeme: "",
+            lexeme: "".to_string(),
             line: self.line,
         });
         &self.tokens

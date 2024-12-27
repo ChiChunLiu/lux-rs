@@ -1,7 +1,7 @@
 use std::fmt;
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum TokenType<'a> {
+pub enum TokenType {
     // Single-character tokens.
     LeftParen,
     RightParen,
@@ -28,7 +28,7 @@ pub enum TokenType<'a> {
 
     //Literals.
     Identifier,
-    String(&'a str),
+    String(String),
     Number(f64),
 
     //Keywords.
@@ -52,20 +52,20 @@ pub enum TokenType<'a> {
     EOF,
 }
 
-impl<'a> fmt::Display for TokenType<'a> {
+impl<'a> fmt::Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
 #[derive(Clone)]
-pub struct Token<'a> {
-    pub token_type: TokenType<'a>,
-    pub lexeme: &'a str,
+pub struct Token {
+    pub token_type: TokenType,
+    pub lexeme: String,
     pub line: usize,
 }
 
-impl<'a> ToString for Token<'a> {
+impl ToString for Token {
     fn to_string(&self) -> String {
         format!("{} {}", self.token_type, self.lexeme)
     }

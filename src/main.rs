@@ -29,8 +29,8 @@ impl Lux {
     }
 
     fn run(source: &str) {
-        let mut reporter = StdoutReporter::default();
-        let mut scanner = scanner::Scanner::new(source, &mut reporter);
+        let reporter = StdoutReporter::default();
+        let mut scanner = scanner::Scanner::new(source, reporter);
         let tokens = scanner.scan_tokens();
         for token in tokens {
             println!("{:?}", token.to_string())
