@@ -1,17 +1,17 @@
 use crate::reporter::Reporter;
 use crate::token::{Token, TokenType};
 
-pub struct Scanner<'a, R: Reporter> {
+pub struct Scanner<'a> {
     pub source: &'a str,
     pub tokens: Vec<Token>,
     pub start: usize,
     pub current: usize,
     pub line: usize,
-    pub reporter: R,
+    pub reporter: &'a mut dyn Reporter,
 }
 
-impl<'a, R: Reporter> Scanner<'a, R> {
-    pub fn new(source: &'a str, reporter: R) -> Self {
+impl<'a> Scanner<'a> {
+    pub fn new(source: &'a str, reporter: &'a mut dyn Reporter) -> Self {
         Scanner {
             source,
             tokens: vec![],

@@ -13,14 +13,14 @@ use crate::token::{Token, TokenType};
 // primary        → NUMBER | STRING | "true" | "false" | "nil"
 //                | "(" expression ")" ;
 
-pub struct Parser<R: Reporter> {
+pub struct Parser<'a> {
     pub tokens: Vec<Token>,
     pub current: usize,
-    pub reporter: R,
+    pub reporter: &'a mut dyn Reporter,
 }
 
-impl<R: Reporter> Parser<R> {
-    pub fn new(tokens: Vec<Token>, reporter: R) -> Self {
+impl<'a> Parser<'a> {
+    pub fn new(tokens: Vec<Token>, reporter: &'a mut dyn Reporter) -> Self {
         Self {
             tokens,
             current: 0,

@@ -32,12 +32,11 @@ impl Lux {
     }
 
     fn run(source: &str) {
-        let reporter = StdoutReporter::default();
-        let mut scanner = scanner::Scanner::new(source, reporter);
+        let mut reporter = StdoutReporter::default();
+        let mut scanner = scanner::Scanner::new(source, &mut reporter);
         scanner.scan_tokens();
         let tokens = scanner.into_tokens();
-        let reporter = StdoutReporter::default(); // TODO: avoid initializing twice
-        let mut parser = parser::Parser::new(tokens, reporter);
+        let mut parser = parser::Parser::new(tokens, &mut reporter);
         let expression = parser.parse();
         let ast_printer = ast_printer::AstPrinter {};
         let printed = ast_printer.print(&expression);
