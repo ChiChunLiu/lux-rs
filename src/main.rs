@@ -10,7 +10,6 @@ use std::fs;
 use std::io;
 use std::io::Write;
 
-use crate::expressions::Accept;
 use crate::reporter::StdoutReporter;
 
 struct Lux;
@@ -41,7 +40,7 @@ impl Lux {
         let mut parser = parser::Parser::new(tokens, reporter);
         let expression = parser.parse();
         let ast_printer = ast_printer::AstPrinter {};
-        let printed = expression.accept(&ast_printer);
+        let printed = ast_printer.print(&expression);
         println!("ast: {}", printed);
         let interpreter = interpreter::Interpreter {};
         match interpreter.evaluate(&expression) {

@@ -4,6 +4,9 @@ use crate::expressions::{
 
 pub struct AstPrinter;
 impl AstPrinter {
+    pub fn print(&self, expr: &Expr) -> String {
+        expr.accept(self)
+    }
     fn parenthesize(&self, name: &str, exprs: &[&Expr]) -> String {
         let mut result = String::new();
         result.push('(');
