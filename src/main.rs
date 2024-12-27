@@ -1,3 +1,4 @@
+mod ast_printer;
 mod expressions;
 mod parser;
 mod reporter;
@@ -38,7 +39,7 @@ impl Lux {
         let reporter = StdoutReporter::default(); // TODO: avoid initializing twice
         let mut parser = parser::Parser::new(tokens, reporter);
         let expression = parser.parse();
-        let visitor = expressions::AstPrinter {};
+        let visitor = ast_printer::AstPrinter {};
         let printed = expression.accept(&visitor);
         println!("{}", printed);
     }
