@@ -49,10 +49,10 @@ pub enum TokenType {
     Var,
     While,
 
-    EOF,
+    EndOfFile,
 }
 
-impl<'a> fmt::Display for TokenType {
+impl fmt::Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
@@ -65,8 +65,8 @@ pub struct Token {
     pub line: usize,
 }
 
-impl ToString for Token {
-    fn to_string(&self) -> String {
-        format!("{} {}", self.token_type, self.lexeme)
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {}", self.token_type, self.lexeme)
     }
 }

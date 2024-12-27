@@ -34,16 +34,16 @@ impl<'a, R: Reporter> Scanner<'a, R> {
 
     fn match_char(&mut self, c: char) -> bool {
         if self.is_at_end() || self.source.as_bytes()[self.current] as char != c {
-            return false;
+            false
         } else {
             self.current += 1;
-            return true;
+            true
         }
     }
 
     fn peek(&self) -> char {
         if self.is_at_end() {
-            return '\0';
+            '\0'
         } else {
             return self.source.as_bytes()[self.current] as char;
         }
@@ -51,7 +51,7 @@ impl<'a, R: Reporter> Scanner<'a, R> {
 
     fn peek_next(&self) -> char {
         if self.current + 1 >= self.source.len() {
-            return '\0';
+            '\0'
         } else {
             return self.source.as_bytes()[self.current + 1] as char;
         }
@@ -72,24 +72,17 @@ impl<'a, R: Reporter> Scanner<'a, R> {
         self.add_token(TokenType::String(string_literal))
     }
 
-    fn is_digit(c: char) -> bool {
-        match c {
-            '0'..='9' => true,
-            _ => false,
-        }
-    }
-
     fn is_alphanumeric(c: char) -> bool {
         c.is_ascii_digit() || c.is_ascii_alphabetic() || c == '_'
     }
 
     fn number(&mut self) {
-        while Self::is_digit(self.peek()) && !self.is_at_end() {
+        while self.peek().is_ascii_digit() && !self.is_at_end() {
             self.advance();
         }
-        if self.peek() == '.' && Self::is_digit(self.peek_next()) {
+        if self.peek() == '.' && self.peek_next().is_ascii_digit() {
             self.advance();
-            while Self::is_digit(self.peek()) && !self.is_at_end() {
+            while self.peek().is_ascii() && !self.is_at_end() {
                 self.advance();
             }
         }
@@ -187,7 +180,7 @@ impl<'a, R: Reporter> Scanner<'a, R> {
             '"' => self.string(),
             ' ' | '\t' | '\r' => {}
             '\n' => self.line += 1,
-            c if Self::is_digit(c) => self.number(),
+            c if c.is_ascii_digit() => self.number(),
             c if c.is_ascii_alphabetic() || c == '_' => self.identifier(),
             _ => {
                 let message = format!("encountered unexpected character: {}", c);
@@ -202,7 +195,7 @@ impl<'a, R: Reporter> Scanner<'a, R> {
             self.scan_token();
         }
         self.tokens.push(Token {
-            token_type: TokenType::EOF,
+            token_type: TokenType::EndOfFile,
             lexeme: "".to_string(),
             line: self.line,
         });

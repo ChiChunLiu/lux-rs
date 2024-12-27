@@ -1,5 +1,4 @@
 use crate::token::Token;
-use paste;
 
 pub trait Accept<R> {
     fn accept(&self, visitor: &impl ExprVisitor<R>) -> R;
@@ -55,7 +54,7 @@ pub enum Expr {
     Grouping(Box<GroupingExpr>),
 }
 
-impl<'a, R> Accept<R> for Expr {
+impl<R> Accept<R> for Expr {
     fn accept(&self, visitor: &impl ExprVisitor<R>) -> R {
         match self {
             Self::Binary(expr) => expr.accept(visitor),
@@ -71,7 +70,7 @@ impl AstPrinter {
     fn parenthesize(&self, name: &str, exprs: &[&Expr]) -> String {
         let mut result = String::new();
         result.push('(');
-        result.push_str(&format!("{}", name));
+        result.push_str(name);
         for expr in exprs {
             result.push(' ');
             result.push_str(&expr.accept(self))

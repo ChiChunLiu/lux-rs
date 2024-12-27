@@ -37,7 +37,7 @@ impl<R: Reporter> Parser<R> {
     }
 
     fn is_at_end(&self) -> bool {
-        self.peek().token_type == TokenType::EOF
+        self.peek().token_type == TokenType::EndOfFile
     }
 
     fn peek(&self) -> &Token {
@@ -145,14 +145,14 @@ impl<R: Reporter> Parser<R> {
         }
     }
 
-    fn consume(&mut self, token_type: TokenType, message: &str) {
-        if self.check(&token_type) {
-            self.advance();
-        } else {
-            let token = self.peek().clone();
-            self.reporter.parser_error(&token, message)
-        }
-    }
+    // fn consume(&mut self, token_type: TokenType, message: &str) {
+    //     if self.check(&token_type) {
+    //         self.advance();
+    //     } else {
+    //         let token = self.peek().clone();
+    //         self.reporter.parser_error(&token, message)
+    //     }
+    // }
 
     fn primary(&mut self) -> Result<Expr, &str> {
         match &self.peek().token_type {
