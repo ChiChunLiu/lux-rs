@@ -1,11 +1,11 @@
 use crate::token::Token;
 use paste;
 
-trait Accept<R> {
+pub trait Accept<R> {
     fn accept(&self, visitor: &impl ExprVisitor<R>) -> R;
 }
 
-trait ExprVisitor<R> {
+pub trait ExprVisitor<R> {
     fn visit_binary_expr(&self, expr: &BinaryExpr) -> R;
     fn visit_unary_expr(&self, expr: &UnaryExpr) -> R;
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> R;
@@ -66,7 +66,7 @@ impl<'a, R> Accept<R> for Expr {
     }
 }
 
-struct AstPrinter;
+pub struct AstPrinter;
 impl AstPrinter {
     fn parenthesize(&self, name: &str, exprs: &[&Expr]) -> String {
         let mut result = String::new();
