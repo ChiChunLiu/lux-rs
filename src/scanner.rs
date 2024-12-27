@@ -196,7 +196,7 @@ impl<'a, R: Reporter> Scanner<'a, R> {
         };
     }
 
-    pub fn scan_tokens(&mut self) -> &Vec<Token> {
+    pub fn scan_tokens(&mut self) {
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token();
@@ -206,6 +206,9 @@ impl<'a, R: Reporter> Scanner<'a, R> {
             lexeme: "".to_string(),
             line: self.line,
         });
-        &self.tokens
+    }
+
+    pub fn into_tokens(self) -> Vec<Token> {
+        self.tokens
     }
 }

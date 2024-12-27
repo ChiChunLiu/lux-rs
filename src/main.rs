@@ -1,4 +1,5 @@
 mod expressions;
+mod parser;
 mod reporter;
 mod scanner;
 mod token;
@@ -7,6 +8,7 @@ use std::fs;
 use std::io;
 use std::io::Write;
 
+use crate::expressions::Accept;
 use crate::reporter::StdoutReporter;
 
 struct Lux;
@@ -31,10 +33,14 @@ impl Lux {
     fn run(source: &str) {
         let reporter = StdoutReporter::default();
         let mut scanner = scanner::Scanner::new(source, reporter);
-        let tokens = scanner.scan_tokens();
-        for token in tokens {
-            println!("{:?}", token.to_string())
-        }
+        scanner.scan_tokens();
+        let tokens = scanner.into_tokens();
+        let reporter = StdoutReporter::default(); // TODO: avoid initializing twice
+        let mut parser = parser::Parser::new(tokens, reporter);
+        let expression = parser.parse();
+        let visitor = expressions::AstPrinter {};
+        let printed = expression.accept(&visitor);
+        println!("{}", printed);
     }
 }
 
