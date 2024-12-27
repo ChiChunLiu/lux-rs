@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::token::Token;
 
 pub trait Accept<R> {
@@ -31,12 +33,24 @@ macro_rules! ast_node {
     };
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum LiteralValue {
     String(String),
     Number(f64),
     Bool(bool),
     Nil,
+}
+
+impl fmt::Display for LiteralValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let message = match self {
+            Self::Bool(value) => format!("Bool({})", value),
+            Self::Number(value) => format!("Number({})", value),
+            Self::String(value) => format!("String({})", value),
+            Self::Nil => "Nil".to_string(),
+        };
+        write!(f, "{}", message)
+    }
 }
 
 ast_node!(BinaryExpr, (left, Expr), (operator, Token), (right, Expr));

@@ -1,5 +1,6 @@
 mod ast_printer;
 mod expressions;
+mod interpreter;
 mod parser;
 mod reporter;
 mod scanner;
@@ -39,9 +40,14 @@ impl Lux {
         let reporter = StdoutReporter::default(); // TODO: avoid initializing twice
         let mut parser = parser::Parser::new(tokens, reporter);
         let expression = parser.parse();
-        let visitor = ast_printer::AstPrinter {};
-        let printed = expression.accept(&visitor);
-        println!("{}", printed);
+        let ast_printer = ast_printer::AstPrinter {};
+        let printed = expression.accept(&ast_printer);
+        println!("ast: {}", printed);
+        let interpreter = interpreter::Interpreter {};
+        match interpreter.evaluate(&expression) {
+            Ok(result) => println!("result: {}", result),
+            Err(message) => println!("error in interperter: {}", message),
+        }
     }
 }
 
