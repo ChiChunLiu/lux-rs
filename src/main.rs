@@ -45,7 +45,7 @@ impl Lux {
         let interpreter = interpreter::Interpreter {};
         match interpreter.evaluate(&expression) {
             Ok(result) => println!("result: {}", result),
-            Err(message) => println!("error in interperter: {}", message),
+            Err(message) => println!("error in interpreter: {}", message),
         }
     }
 }
