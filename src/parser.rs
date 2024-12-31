@@ -1,9 +1,18 @@
-use crate::expressions::{BinaryExpr, Expr, GroupingExpr, LiteralExpr, LiteralValue, UnaryExpr};
+use crate::expressions::{
+    BinaryExpr, Expr, GroupingExpr, LiteralExpr, LiteralValue, UnaryExpr, VarExpr,
+};
 use crate::reporter::Reporter;
-use crate::statements::{ExprStmt, PrintStmt, Stmt};
+use crate::statements::{ExprStmt, PrintStmt, Stmt, VarStmt};
 use crate::token::{Token, TokenType};
 
-// Grammar:
+// Statement grammar:
+// program        → declaration* EOF ;
+// declaration    → varDecl
+//                | statement ;
+// statement      → exprStmt
+//                | printStmt ;
+
+// Expression grammar:
 // expression     → equality ;
 // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -66,21 +75,46 @@ impl<'a> Parser<'a> {
         false
     }
 
-    fn consume(&mut self, token_type: TokenType, message: &str) {
+    fn consume(&mut self, token_type: TokenType, message: &str) -> &Token {
         if self.check(&token_type) {
-            self.advance();
+            self.advance()
         } else {
             let token = self.peek().clone();
-            self.reporter.parser_error(&token, message)
+            self.reporter.parser_error(&token, message);
+            self.previous() // FIXME: previous() is a stub. Use Result<Token, &str> instead.
         }
     }
 
     pub fn parse(&mut self) -> Vec<Stmt> {
         let mut statements = Vec::new();
         while !self.is_at_end() {
-            statements.push(self.statement())
+            statements.push(self.declaration())
         }
         statements
+    }
+
+    fn declaration(&mut self) -> Stmt {
+        if self.match_token_types(&[TokenType::Var]) {
+            self.var_declaration()
+        } else {
+            self.statement()
+        }
+    }
+
+    fn var_declaration(&mut self) -> Stmt {
+        let name = self
+            .consume(TokenType::Identifier, "Expect variabel name.")
+            .clone();
+        let initializer = if self.match_token_types(&[TokenType::Equal]) {
+            Some(self.expression())
+        } else {
+            None
+        };
+        self.consume(
+            TokenType::Semicolon,
+            "Expect ';' after variable declaration.",
+        );
+        Stmt::Var(Box::new(VarStmt { name, initializer }))
     }
 
     fn statement(&mut self) -> Stmt {
@@ -221,6 +255,10 @@ impl<'a> Parser<'a> {
                     TokenType::RightParen => Ok(Expr::Grouping(Box::new(GroupingExpr { expr }))),
                     _ => Err("Parsing error: expecting ')'"),
                 }
+            }
+            TokenType::Identifier => {
+                let token = self.advance().clone();
+                Ok(Expr::Variable(Box::new(VarExpr { name: token })))
             }
             _ => Err("parsing error"),
         }

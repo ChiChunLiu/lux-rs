@@ -1,5 +1,6 @@
 use crate::expressions::{
     Accept, BinaryExpr, Expr, ExprVisitor, GroupingExpr, LiteralExpr, LiteralValue, UnaryExpr,
+    VarExpr,
 };
 use crate::statements::Accept as StmtAccept;
 use crate::statements::{Stmt, StmtVisitor};
@@ -38,6 +39,9 @@ impl StmtVisitor<Result<(), &'static str>> for Interpreter {
     fn visit_print_stmt(&self, stmt: &crate::statements::PrintStmt) -> Result<(), &'static str> {
         let value = self.evaluate(&stmt.expr)?;
         println!("{}", value);
+        Ok(())
+    }
+    fn visit_var_stmt(&self, stmt: &crate::statements::VarStmt) -> Result<(), &'static str> {
         Ok(())
     }
 }
@@ -136,5 +140,9 @@ impl ExprVisitor<Result<LiteralValue, &'static str>> for Interpreter {
     }
     fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<LiteralValue, &'static str> {
         self.evaluate(&expr.expr)
+    }
+    fn visit_var_expr(&self, expr: &VarExpr) -> Result<LiteralValue, &'static str> {
+        Ok(LiteralValue::Nil)
+        //self.evaluate(&expr.name)
     }
 }

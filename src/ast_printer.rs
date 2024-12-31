@@ -1,5 +1,6 @@
 use crate::expressions::{
     Accept, BinaryExpr, Expr, ExprVisitor, GroupingExpr, LiteralExpr, LiteralValue, UnaryExpr,
+    VarExpr,
 };
 
 pub struct AstPrinter;
@@ -36,6 +37,9 @@ impl ExprVisitor<String> for AstPrinter {
     }
     fn visit_grouping_expr(&self, expr: &GroupingExpr) -> String {
         self.parenthesize("group", &[&expr.expr])
+    }
+    fn visit_var_expr(&self, expr: &VarExpr) -> String {
+        self.parenthesize(&format!("var {}", expr.name), &[])
     }
 }
 

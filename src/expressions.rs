@@ -11,6 +11,7 @@ pub trait ExprVisitor<R> {
     fn visit_unary_expr(&self, expr: &UnaryExpr) -> R;
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> R;
     fn visit_grouping_expr(&self, expr: &GroupingExpr) -> R;
+    fn visit_var_expr(&self, expr: &VarExpr) -> R;
 }
 
 #[macro_export]
@@ -57,6 +58,7 @@ ast_node!(BinaryExpr, (left, Expr), (operator, Token), (right, Expr));
 ast_node!(UnaryExpr, (operator, Token), (right, Expr));
 ast_node!(LiteralExpr, (value, LiteralValue));
 ast_node!(GroupingExpr, (expr, Expr));
+ast_node!(VarExpr, (name, Token));
 
 // Box is necessary because expression created inside a function
 // needs to be owned
@@ -66,6 +68,7 @@ pub enum Expr {
     Unary(Box<UnaryExpr>),
     Literal(Box<LiteralExpr>),
     Grouping(Box<GroupingExpr>),
+    Variable(Box<VarExpr>),
 }
 
 impl<R> Accept<R> for Expr {
@@ -75,6 +78,7 @@ impl<R> Accept<R> for Expr {
             Self::Unary(expr) => expr.accept(visitor),
             Self::Literal(expr) => expr.accept(visitor),
             Self::Grouping(expr) => expr.accept(visitor),
+            Self::Variable(expr) => expr.accept(visitor),
         }
     }
 }

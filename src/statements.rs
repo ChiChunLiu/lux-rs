@@ -1,4 +1,5 @@
 use crate::expressions::Expr;
+use crate::token::Token;
 
 pub trait Accept<R> {
     fn accept(&self, visitor: &impl StmtVisitor<R>) -> R;
@@ -7,11 +8,12 @@ pub trait Accept<R> {
 pub trait StmtVisitor<R> {
     fn visit_print_stmt(&self, stmt: &PrintStmt) -> R;
     fn visit_expr_stmt(&self, stmt: &ExprStmt) -> R;
+    fn visit_var_stmt(&self, stmt: &VarStmt) -> R;
 }
 
 #[macro_export]
 macro_rules! stmt {
-    ( $node_name:ident,  $(($field_name:ident, $field_type:ident)),* ) => {
+    ( $node_name:ident,  $(($field_name:ident, $field_type:ty)),* ) => {
         #[derive(Clone, Debug)]
         pub struct $node_name {
             $(
@@ -31,6 +33,7 @@ macro_rules! stmt {
 
 stmt!(PrintStmt, (expr, Expr));
 stmt!(ExprStmt, (expr, Expr));
+stmt!(VarStmt, (name, Token), (initializer, Option<Expr>));
 
 // Box is necessary because expression created inside a function
 // needs to be owned
@@ -38,6 +41,7 @@ stmt!(ExprStmt, (expr, Expr));
 pub enum Stmt {
     Print(Box<PrintStmt>),
     Expr(Box<ExprStmt>),
+    Var(Box<VarStmt>),
 }
 
 impl<R> Accept<R> for Stmt {
@@ -45,6 +49,7 @@ impl<R> Accept<R> for Stmt {
         match self {
             Self::Print(stmt) => stmt.accept(visitor),
             Self::Expr(stmt) => stmt.accept(visitor),
+            Self::Var(stmt) => stmt.accept(visitor),
         }
     }
 }
