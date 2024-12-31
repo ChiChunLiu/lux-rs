@@ -82,7 +82,7 @@ impl<'a> Scanner<'a> {
         }
         if self.peek() == '.' && self.peek_next().is_ascii_digit() {
             self.advance();
-            while self.peek().is_ascii() && !self.is_at_end() {
+            while self.peek().is_ascii_digit() && !self.is_at_end() {
                 self.advance();
             }
         }
