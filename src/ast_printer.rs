@@ -5,6 +5,7 @@ use crate::expressions::{
 
 pub struct AstPrinter;
 impl AstPrinter {
+    #[allow(dead_code)]
     pub fn print(&self, expr: &Expr) -> String {
         expr.accept(self)
     }

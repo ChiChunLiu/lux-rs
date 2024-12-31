@@ -1,21 +1,30 @@
+use crate::environment::Environment;
 use crate::expressions::{
     Accept, BinaryExpr, Expr, ExprVisitor, GroupingExpr, LiteralExpr, LiteralValue, UnaryExpr,
     VarExpr,
 };
 use crate::statements::Accept as StmtAccept;
-use crate::statements::{Stmt, StmtVisitor};
+use crate::statements::{ExprStmt, PrintStmt, Stmt, StmtVisitor, VarStmt};
 use crate::token::TokenType;
 
-pub struct Interpreter;
+pub struct Interpreter {
+    environment: Environment,
+}
 impl Interpreter {
-    pub fn interpret(&self, statements: &Vec<Stmt>) -> Result<(), &'static str> {
+    pub fn new() -> Self {
+        Self {
+            environment: Environment::default(),
+        }
+    }
+
+    pub fn interpret(&mut self, statements: &Vec<Stmt>) -> Result<(), &'static str> {
         for stmt in statements {
             self.execute(stmt)?;
         }
         Ok(())
     }
 
-    pub fn execute(&self, stmt: &Stmt) -> Result<(), &'static str> {
+    pub fn execute(&mut self, stmt: &Stmt) -> Result<(), &'static str> {
         stmt.accept(self)
     }
 
@@ -32,16 +41,21 @@ impl Interpreter {
 }
 
 impl StmtVisitor<Result<(), &'static str>> for Interpreter {
-    fn visit_expr_stmt(&self, stmt: &crate::statements::ExprStmt) -> Result<(), &'static str> {
+    fn visit_expr_stmt(&mut self, stmt: &ExprStmt) -> Result<(), &'static str> {
         self.evaluate(&stmt.expr)?;
         Ok(())
     }
-    fn visit_print_stmt(&self, stmt: &crate::statements::PrintStmt) -> Result<(), &'static str> {
+    fn visit_print_stmt(&mut self, stmt: &PrintStmt) -> Result<(), &'static str> {
         let value = self.evaluate(&stmt.expr)?;
         println!("{}", value);
         Ok(())
     }
-    fn visit_var_stmt(&self, stmt: &crate::statements::VarStmt) -> Result<(), &'static str> {
+    fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<(), &'static str> {
+        let value = match &stmt.initializer {
+            Some(expr) => self.evaluate(expr)?,
+            None => LiteralValue::Nil,
+        };
+        self.environment.define(stmt.name.lexeme.clone(), value);
         Ok(())
     }
 }
@@ -142,7 +156,7 @@ impl ExprVisitor<Result<LiteralValue, &'static str>> for Interpreter {
         self.evaluate(&expr.expr)
     }
     fn visit_var_expr(&self, expr: &VarExpr) -> Result<LiteralValue, &'static str> {
-        Ok(LiteralValue::Nil)
-        //self.evaluate(&expr.name)
+        let value = self.environment.get(&expr.name)?.clone();
+        Ok(value)
     }
 }

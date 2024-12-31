@@ -2,13 +2,13 @@ use crate::expressions::Expr;
 use crate::token::Token;
 
 pub trait Accept<R> {
-    fn accept(&self, visitor: &impl StmtVisitor<R>) -> R;
+    fn accept(&self, visitor: &mut impl StmtVisitor<R>) -> R;
 }
 
 pub trait StmtVisitor<R> {
-    fn visit_print_stmt(&self, stmt: &PrintStmt) -> R;
-    fn visit_expr_stmt(&self, stmt: &ExprStmt) -> R;
-    fn visit_var_stmt(&self, stmt: &VarStmt) -> R;
+    fn visit_print_stmt(&mut self, stmt: &PrintStmt) -> R;
+    fn visit_expr_stmt(&mut self, stmt: &ExprStmt) -> R;
+    fn visit_var_stmt(&mut self, stmt: &VarStmt) -> R;
 }
 
 #[macro_export]
@@ -23,7 +23,7 @@ macro_rules! stmt {
 
         paste::paste! {
         impl<'a, R> Accept<R> for $node_name {
-           fn accept(&self, visitor: &impl StmtVisitor<R>) -> R {
+           fn accept(&self, visitor: &mut impl StmtVisitor<R>) -> R {
                visitor.[<visit_ $node_name:snake>](self)
            }
         }
@@ -45,7 +45,7 @@ pub enum Stmt {
 }
 
 impl<R> Accept<R> for Stmt {
-    fn accept(&self, visitor: &impl StmtVisitor<R>) -> R {
+    fn accept(&self, visitor: &mut impl StmtVisitor<R>) -> R {
         match self {
             Self::Print(stmt) => stmt.accept(visitor),
             Self::Expr(stmt) => stmt.accept(visitor),
