@@ -16,7 +16,7 @@ pub trait ExprVisitor<R> {
 #[macro_export]
 macro_rules! ast_node {
     ( $node_name:ident,  $(($field_name:ident, $field_type:ident)),* ) => {
-        #[derive(Clone)]
+        #[derive(Clone, Debug)]
         pub struct $node_name {
             $(
                 pub $field_name: $field_type,
@@ -33,7 +33,7 @@ macro_rules! ast_node {
     };
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum LiteralValue {
     String(String),
     Number(f64),
@@ -60,7 +60,7 @@ ast_node!(GroupingExpr, (expr, Expr));
 
 // Box is necessary because expression created inside a function
 // needs to be owned
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Expr {
     Binary(Box<BinaryExpr>),
     Unary(Box<UnaryExpr>),
