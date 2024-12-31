@@ -1,5 +1,6 @@
 use crate::expressions::{BinaryExpr, Expr, GroupingExpr, LiteralExpr, LiteralValue, UnaryExpr};
 use crate::reporter::Reporter;
+use crate::statements::{ExprStmt, PrintStmt, Stmt};
 use crate::token::{Token, TokenType};
 
 // Grammar:
@@ -65,8 +66,41 @@ impl<'a> Parser<'a> {
         false
     }
 
-    pub fn parse(&mut self) -> Expr {
-        self.expression()
+    fn consume(&mut self, token_type: TokenType, message: &str) {
+        if self.check(&token_type) {
+            self.advance();
+        } else {
+            let token = self.peek().clone();
+            self.reporter.parser_error(&token, message)
+        }
+    }
+
+    pub fn parse(&mut self) -> Vec<Stmt> {
+        let mut statements = Vec::new();
+        while !self.is_at_end() {
+            statements.push(self.statement())
+        }
+        statements
+    }
+
+    fn statement(&mut self) -> Stmt {
+        if self.match_token_types(&[TokenType::Print]) {
+            self.print_statement()
+        } else {
+            self.expression_statement()
+        }
+    }
+
+    fn print_statement(&mut self) -> Stmt {
+        let value = self.expression();
+        self.consume(TokenType::Semicolon, "Expect ';' after value.");
+        Stmt::Print(Box::new(PrintStmt { expr: value }))
+    }
+
+    fn expression_statement(&mut self) -> Stmt {
+        let expr = self.expression();
+        self.consume(TokenType::Semicolon, "Expect ';' after value.");
+        Stmt::Expr(Box::new(ExprStmt { expr }))
     }
 
     fn expression(&mut self) -> Expr {
@@ -144,15 +178,6 @@ impl<'a> Parser<'a> {
             self.primary().unwrap()
         }
     }
-
-    // fn consume(&mut self, token_type: TokenType, message: &str) {
-    //     if self.check(&token_type) {
-    //         self.advance();
-    //     } else {
-    //         let token = self.peek().clone();
-    //         self.reporter.parser_error(&token, message)
-    //     }
-    // }
 
     fn primary(&mut self) -> Result<Expr, &str> {
         match &self.peek().token_type {

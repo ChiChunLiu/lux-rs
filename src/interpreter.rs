@@ -1,10 +1,23 @@
 use crate::expressions::{
     Accept, BinaryExpr, Expr, ExprVisitor, GroupingExpr, LiteralExpr, LiteralValue, UnaryExpr,
 };
+use crate::statements::Accept as StmtAccept;
+use crate::statements::{Stmt, StmtVisitor};
 use crate::token::TokenType;
 
 pub struct Interpreter;
 impl Interpreter {
+    pub fn interpret(&self, statements: &Vec<Stmt>) -> Result<(), &'static str> {
+        for stmt in statements {
+            self.execute(stmt)?;
+        }
+        Ok(())
+    }
+
+    pub fn execute(&self, stmt: &Stmt) -> Result<(), &'static str> {
+        stmt.accept(self)
+    }
+
     pub fn evaluate(&self, expr: &Expr) -> Result<LiteralValue, &'static str> {
         expr.accept(self)
     }
@@ -14,6 +27,18 @@ impl Interpreter {
             LiteralValue::Bool(value) => *value,
             _ => true,
         }
+    }
+}
+
+impl StmtVisitor<Result<(), &'static str>> for Interpreter {
+    fn visit_expr_stmt(&self, stmt: &crate::statements::ExprStmt) -> Result<(), &'static str> {
+        self.evaluate(&stmt.expr)?;
+        Ok(())
+    }
+    fn visit_print_stmt(&self, stmt: &crate::statements::PrintStmt) -> Result<(), &'static str> {
+        let value = self.evaluate(&stmt.expr)?;
+        println!("{}", value);
+        Ok(())
     }
 }
 

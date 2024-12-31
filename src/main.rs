@@ -4,6 +4,7 @@ mod interpreter;
 mod parser;
 mod reporter;
 mod scanner;
+mod statements;
 mod token;
 use std::env;
 use std::fs;
@@ -37,13 +38,11 @@ impl Lux {
         scanner.scan_tokens();
         let tokens = scanner.into_tokens();
         let mut parser = parser::Parser::new(tokens, &mut reporter);
-        let expression = parser.parse();
-        let ast_printer = ast_printer::AstPrinter {};
-        let printed = ast_printer.print(&expression);
-        println!("ast: {}", printed);
+        let statements = parser.parse();
+        println!("{:?}", statements);
         let interpreter = interpreter::Interpreter {};
-        match interpreter.evaluate(&expression) {
-            Ok(result) => println!("result: {}", result),
+        match interpreter.interpret(&statements) {
+            Ok(_) => {}
             Err(message) => println!("error in interpreter: {}", message),
         }
     }
