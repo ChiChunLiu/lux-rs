@@ -33,36 +33,34 @@ impl<'a> Scanner<'a> {
     }
 
     fn match_char(&mut self, c: char) -> bool {
-        if self.is_at_end() || self.source.as_bytes()[self.current] as char != c {
-            false
-        } else {
+        let matched = !self.is_at_end() && self.source.as_bytes()[self.current] as char == c;
+        if matched {
             self.current += 1;
-            true
         }
+        matched
     }
 
-    fn peek(&self) -> char {
-        if self.is_at_end() {
-            '\0'
-        } else {
-            return self.source.as_bytes()[self.current] as char;
-        }
+    fn peek(&self) -> Option<char> {
+        (!self.is_at_end()).then(|| self.source.as_bytes()[self.current] as char)
     }
 
-    fn peek_next(&self) -> char {
-        if self.current + 1 >= self.source.len() {
-            '\0'
-        } else {
-            return self.source.as_bytes()[self.current + 1] as char;
-        }
+    fn peek_next(&self) -> Option<char> {
+        (self.current + 1 < self.source.len())
+            .then(|| self.source.as_bytes()[self.current + 1] as char)
     }
 
     fn string(&mut self) {
-        while self.peek() != '"' && !self.is_at_end() {
-            if self.peek() == '\n' {
-                self.line += 1;
+        while let Some(c) = self.peek() {
+            match c {
+                '"' => break,
+                'n' => {
+                    self.line += 1;
+                    self.advance();
+                }
+                _ => {
+                    self.advance();
+                }
             }
-            self.advance();
         }
         if self.is_at_end() {
             self.reporter.scanner_error(self.line, "string not closed");
@@ -77,12 +75,12 @@ impl<'a> Scanner<'a> {
     }
 
     fn number(&mut self) {
-        while self.peek().is_ascii_digit() && !self.is_at_end() {
+        while self.peek().map_or(false, |c| c.is_ascii_digit()) {
             self.advance();
         }
-        if self.peek() == '.' && self.peek_next().is_ascii_digit() {
+        if self.peek() == Some('.') && self.peek_next().map_or(false, |c| c.is_ascii_digit()) {
             self.advance();
-            while self.peek().is_ascii_digit() && !self.is_at_end() {
+            while self.peek().map_or(false, |c| c.is_ascii_digit()) {
                 self.advance();
             }
         }
@@ -93,7 +91,7 @@ impl<'a> Scanner<'a> {
     }
 
     fn identifier(&mut self) {
-        while Self::is_alphanumeric(self.peek()) {
+        while self.peek().map_or(false, Self::is_alphanumeric) {
             self.advance();
         }
         let token_type = match &self.source[self.start..self.current] {
@@ -170,7 +168,10 @@ impl<'a> Scanner<'a> {
             }
             '/' => {
                 if self.match_char('/') {
-                    while self.peek() != '\n' && !self.is_at_end() {
+                    while let Some(c) = self.peek() {
+                        if c == '\n' {
+                            break;
+                        }
                         self.advance();
                     }
                 } else {
@@ -201,6 +202,10 @@ impl<'a> Scanner<'a> {
         });
     }
 
+    /// Obtain the scanned tokens and consume the scanner when scanning is finished
+    ///
+    /// # Returns
+    /// Resulting tokens scanned from the source program
     pub fn into_tokens(self) -> Vec<Token> {
         self.tokens
     }
