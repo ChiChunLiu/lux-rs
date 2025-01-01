@@ -210,3 +210,53 @@ impl<'a> Scanner<'a> {
         self.tokens
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::reporter::StdoutReporter;
+
+    #[test]
+    fn test_scanner() {
+        let source = "var a = 3.1;";
+        let mut reporter = StdoutReporter::default();
+        let mut scanner = Scanner::new(source, &mut reporter);
+        scanner.scan_tokens();
+        let tokens = scanner.into_tokens();
+        assert_eq!(
+            tokens,
+            [
+                Token {
+                    token_type: TokenType::Var,
+                    lexeme: "var".to_string(),
+                    line: 0
+                },
+                Token {
+                    token_type: TokenType::Identifier,
+                    lexeme: "a".to_string(),
+                    line: 0
+                },
+                Token {
+                    token_type: TokenType::Equal,
+                    lexeme: "=".to_string(),
+                    line: 0
+                },
+                Token {
+                    token_type: TokenType::Number(3.1),
+                    lexeme: "3.1".to_string(),
+                    line: 0
+                },
+                Token {
+                    token_type: TokenType::Semicolon,
+                    lexeme: ";".to_string(),
+                    line: 0
+                },
+                Token {
+                    token_type: TokenType::EndOfFile,
+                    lexeme: "".to_string(),
+                    line: 0
+                }
+            ]
+        );
+    }
+}
