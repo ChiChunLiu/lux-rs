@@ -39,11 +39,7 @@ impl<'a> Parser<'a> {
     }
 
     fn check(&self, token_type: &TokenType) -> bool {
-        if self.is_at_end() {
-            false
-        } else {
-            &self.peek().token_type == token_type
-        }
+        !self.is_at_end() && &self.peek().token_type == token_type
     }
 
     fn is_at_end(&self) -> bool {
@@ -66,13 +62,11 @@ impl<'a> Parser<'a> {
     }
 
     fn match_token_types(&mut self, token_types: &[TokenType]) -> bool {
-        for token_type in token_types {
-            if self.check(token_type) {
-                self.advance();
-                return true;
-            }
+        let matched = token_types.iter().any(|token_type| self.check(token_type));
+        if matched {
+            self.advance();
         }
-        false
+        matched
     }
 
     fn consume(&mut self, token_type: TokenType, message: &str) -> &Token {
@@ -83,14 +77,6 @@ impl<'a> Parser<'a> {
             self.reporter.parser_error(&token, message);
             self.previous() // FIXME: previous() is a stub. Use Result<Token, &str> instead.
         }
-    }
-
-    pub fn parse(&mut self) -> Vec<Stmt> {
-        let mut statements = Vec::new();
-        while !self.is_at_end() {
-            statements.push(self.declaration())
-        }
-        statements
     }
 
     fn declaration(&mut self) -> Stmt {
@@ -262,5 +248,13 @@ impl<'a> Parser<'a> {
             }
             _ => Err("parsing error"),
         }
+    }
+
+    pub fn parse(&mut self) -> Vec<Stmt> {
+        let mut statements = Vec::new();
+        while !self.is_at_end() {
+            statements.push(self.declaration())
+        }
+        statements
     }
 }
